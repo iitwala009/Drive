@@ -1,0 +1,153 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define SIZE 5
+
+int buffer[SIZE];
+int in = 0, out = 0;
+
+sem_t empty, full;
+pthread_mutex_t mutex;
+
+void *producer(void *arg)
+{
+    int i = 1;
+
+    while (i <= 10)
+    {
+        int num = rand() % 100 + 1;
+
+        sem_wait(&empty);
+        pthread_mutex_lock(&mutex);
+
+        buffer[in] = num;
+        printf("Producer produced: %d\n", num);
+        in = (in + 1) % SIZE;
+
+        pthread_mutex_unlock(&mutex);
+        sem_post(&full);
+
+        i++;
+        sleep(1);
+    }
+
+    return NULL;
+}
+
+void *consumer(void *arg)
+{
+    int i = 1;
+
+    while (i <= 10)
+    {
+        sem_wait(&full);
+        pthread_mutex_lock(&mutex);
+
+        int item = buffer[out];
+        printf("Consumer consumed: %d\n", item);
+        out = (out + 1) % SIZE;
+
+        pthread_mutex_unlock(&mutex);
+        sem_post(&empty);
+
+        i++;
+        sleep(2);
+    }
+
+    return NULL;
+}
+
+int main()
+{
+    pthread_t p, c;
+
+    srand(time(NULL));
+
+    sem_init(&empty, 0, SIZE);
+    sem_init(&full, 0, 0);
+
+    pthread_mutex_init(&mutex, NULL);
+
+    pthread_create(&p, NULL, producer, NULL);
+    pthread_create(&c, NULL, consumer, NULL);
+
+    pthread_join(p, NULL);
+    pthread_join(c, NULL);
+
+    sem_destroy(&empty);
+    sem_destroy(&full);
+    pthread_mutex_destroy(&mutex);
+
+    return 0;
+}
+
+
+
+
+
+Explanation of C Program – Producer-Consumer Problem (CO3)
+Aim: To implement thread synchronization using counting semaphores and mutual exclusion using mutex.
+Step-by-step Explanation
+1. Header Files: Includes required libraries such as stdio.h, pthread.h, semaphore.h, unistd.h, stdlib.h and time.h for threads, semaphores, random numbers and delay.
+
+2. Buffer Size: #define SIZE 5 defines the buffer capacity as 5 elements.
+
+3. Buffer Variables: buffer[SIZE] stores the produced items. in indicates the insertion position, and out indicates the removal position.
+
+4. Semaphore Declaration: empty counts the empty buffer slots, while full counts the filled buffer slots.
+
+5. Mutex Declaration: pthread_mutex_t mutex ensures that only one thread accesses the shared buffer at a time.
+
+6. Producer Function: Generates random numbers using rand(), waits for an empty slot using sem_wait(&empty), locks the mutex, inserts the item into the buffer and releases the mutex. Then it signals the consumer using sem_post(&full).
+
+7. Consumer Function: Waits for a filled slot using sem_wait(&full), locks the mutex, removes an item from the buffer and releases the mutex. Then it signals the producer using sem_post(&empty).
+
+8. Main Function: Creates two threads: Producer and Consumer. It initializes semaphores and mutex before starting the threads.
+
+9. Thread Creation: pthread_create() creates the producer and consumer threads.
+
+10. Thread Joining: pthread_join() makes the main thread wait until both threads complete execution.
+
+11. Cleanup: sem_destroy() and pthread_mutex_destroy() release the semaphore and mutex resources.
+
+Important Functions Used
+Function	         Purpose
+pthread_create()	Creates a new thread.
+pthread_join()	    Waits for a thread to finish.
+sem_init()       	Initializes a semaphore.
+sem_wait()	        Decreases semaphore value and waits if unavailable.
+sem_post()	        Increases semaphore value and signals waiting threads.
+sem_destroy()	    Destroys a semaphore.
+pthread_mutex_lock()	 Locks the shared resource.
+pthread_mutex_unlock()	 Unlocks the shared resource.
+sleep()	               Adds a time delay.
+rand()	                Generates random numbers.
+
+Important Concepts for Viva
+1. What is Thread Synchronization?
+
+Thread synchronization is a technique used to control multiple threads accessing shared resources.
+
+2. What is a Producer-Consumer Problem?
+
+It is a synchronization problem in which the producer generates items and stores them in a shared buffer, while the consumer removes and uses those items.
+
+3. What is a Semaphore?
+
+A semaphore is a synchronization variable used to control access to shared resources.
+
+4. What is a Counting Semaphore?
+
+A counting semaphore maintains a count of available resources. In this program, it tracks empty and full buffer slots.
+
+5. What is Mutex?
+
+Mutex stands for Mutual Exclusion. It allows only one thread at a time to access a shared resource.
+
+6. Why are two semaphores used?
+- empty = 5: Initially, all five buffer slots are empty.
+- full = 0: Initially, no items are available for consumption.

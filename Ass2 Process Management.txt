@@ -1,0 +1,228 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+void sort(int a[], int n, char name[])
+{
+    int i, j, temp;
+
+    for(i = 0; i < n - 1; i++)
+    {
+        for(j = 0; j < n - i - 1; j++)
+        {
+            if(a[j] > a[j + 1])
+            {
+                temp = a[j];
+                a[j] = a[j + 1];
+                a[j + 1] = temp;
+            }
+        }
+    }
+
+    printf("%s Process Sorted Array: ", name);
+
+    for(i = 0; i < n; i++)
+    {
+        printf("%d ", a[i]);
+    }
+
+    printf("\n");
+}
+
+int main()
+{
+    int n, choice, i;
+    pid_t pid;
+
+    printf("Enter number of elements: ");
+    scanf("%d", &n);
+
+    if(n <= 0)
+    {
+        printf("Invalid number of elements.\n");
+        return 1;
+    }
+
+    int arr[n];
+
+    printf("Enter %d elements: ", n);
+
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d", &arr[i]);
+    }
+
+    printf("\nSelect Demonstration:\n");
+    printf("1. Normal Execution (Parent waits for Child)\n");
+    printf("2. Zombie State\n");
+    printf("3. Orphan State\n");
+    printf("Enter choice: ");
+    scanf("%d", &choice);
+
+    if(choice < 1 || choice > 3)
+    {
+        printf("Invalid choice.\n");
+        return 1;
+    }
+
+    pid = fork();
+
+    if(pid < 0)
+    {
+        printf("Fork failed.\n");
+        return 1;
+    }
+
+    /* Child process */
+    if(pid == 0)
+    {
+        printf("\nChild Process\n");
+        printf("Child PID: %d\n", getpid());
+        printf("Parent PID: %d\n", getppid());
+
+        if(choice == 1)
+        {
+            printf("Child: Sorting...\n");
+            sort(arr, n, "Child");
+            printf("Child finished.\n");
+        }
+
+        else if(choice == 2)
+        {
+            printf("Child: Exiting immediately.\n");
+            printf("Child will become a Zombie.\n");
+            exit(0);
+        }
+
+        else if(choice == 3)
+        {
+            printf("Child: Sleeping for 8 seconds...\n");
+
+            sleep(8);
+
+            printf("\nChild woke up.\n");
+            printf("Child PID: %d\n", getpid());
+            printf("New Parent PID: %d\n", getppid());
+            printf("Child is now an Orphan.\n");
+
+            sort(arr, n, "Child");
+        }
+
+        exit(0);
+    }
+
+    /* Parent process */
+    else
+    {
+        printf("\nParent Process\n");
+        printf("Parent PID: %d\n", getpid());
+        printf("Child PID: %d\n", pid);
+
+        if(choice == 1)
+        {
+            printf("Parent: Waiting for child...\n");
+
+            wait(NULL);
+
+            printf("Parent: Child finished.\n");
+            printf("Parent: Sorting...\n");
+
+            sort(arr, n, "Parent");
+        }
+
+        else if(choice == 2)
+        {
+            printf("Parent: Not calling wait().\n");
+            printf("Parent: Sleeping for 15 seconds.\n");
+            printf("Check Zombie using: ps -el | grep Z\n");
+
+            sleep(15);
+
+            printf("Parent: Exiting.\n");
+        }
+
+        else if(choice == 3)
+        {
+            printf("Parent: Exiting now.\n");
+            printf("Child will become an Orphan.\n");
+
+            exit(0);
+        }
+    }
+
+    return 0;
+}
+
+
+
+Explanation of C Program – Process Management (CO2)
+Aim: To demonstrate fork() and wait() system calls and understand Zombie and Orphan processes using sorting.
+Step-by-step Explanation
+1. Header Files: Includes required libraries such as stdio.h, stdlib.h, unistd.h and sys/wait.h for input/output, process creation, and process management.
+2. Sort Function: The sort() function uses the Bubble Sort algorithm to arrange array elements in ascending order and display the sorted array.
+3. Main Function: Execution starts from main(), where variables are declared to store the number of elements, choice and process ID.
+4. User Input: Accepts the number of elements and integers from the user. It also checks whether the number of elements is valid.
+5. Choice Selection: Displays three options:
+   - 1 – Normal Execution
+   - 2 – Zombie Process
+   - 3 – Orphan Process
+6. fork() System Call: Creates a new process called the Child Process. Both parent and child execute separately.
+7. Child Process: Checks the selected choice and performs the required operation. It displays its PID and Parent PID.
+8. Parent Process: Displays its PID and Child PID and performs operations according to the selected choice.
+
+Explanation of Three Demonstrations
+1. Normal Execution
+- The child process sorts the array using Bubble Sort.
+- The parent uses wait(NULL) to wait until the child finishes.
+- After the child completes, the parent sorts the array.
+- This demonstrates synchronization between parent and child processes.
+2. Zombie Process
+- The child process finishes its execution using exit(0).
+- The parent does not call wait().
+- The child remains in the process table as a Zombie until the parent collects its exit status or exits.
+- We can check it using:
+ps -el | grep Z
+
+
+3. Orphan Process
+- The parent process exits before the child.
+- The child continues execution after the parent terminates.
+- The child becomes an Orphan Process.
+- It gets adopted by another system process.
+- The child displays its new Parent PID and sorts the array.
+
+Important System Calls and Functions
+Function	     Purpose
+fork()	    Creates a child process.
+wait(NULL)	Parent waits for child termination.
+getpid()	Returns current process ID.
+getppid()	Returns parent process ID.
+sleep()  	Pauses execution for specified seconds.
+exit(0)	   Terminates the process.
+sort()	   Sorts array elements using Bubble Sort.
+
+Important Definitions for Viva
+1. What is a Process?
+
+A process is a program that is currently in execution.
+
+2. What is fork()?
+
+It is a system call used to create a new child process.
+
+3. What is wait()?
+
+It is a system call used by the parent process to wait for the child process to finish.
+
+4. What is a Zombie Process?
+
+A process that has completed execution but whose exit status has not yet been collected by its parent.
+
+5. What is an Orphan Process?
+
+A child process whose parent process terminates before the child.
+
+6. What is PID?
+
+PID stands for Process ID, which uniquely identifies a process.

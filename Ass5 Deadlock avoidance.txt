@@ -1,0 +1,247 @@
+#include <stdio.h>
+
+int main()
+{
+    int n, m;
+    int allocation[10][10], max[10][10], need[10][10];
+    int available[10], work[10], finish[10];
+    int safe[10], count = 0;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    printf("Enter number of resources: ");
+    scanf("%d", &m);
+
+    printf("Enter Allocation Matrix:\n");
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            scanf("%d", &allocation[i][j]);
+
+    printf("Enter Max Matrix:\n");
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            scanf("%d", &max[i][j]);
+
+    printf("Enter Available Resources:\n");
+    for (int j = 0; j < m; j++)
+        scanf("%d", &available[j]);
+
+    // Calculate Need Matrix
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            need[i][j] = max[i][j] - allocation[i][j];
+
+    // Initialize Work and Finish
+    for (int j = 0; j < m; j++)
+        work[j] = available[j];
+
+    for (int i = 0; i < n; i++)
+        finish[i] = 0;
+
+    // Find Safe Sequence
+    while (count < n)
+    {
+        int found = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            if (finish[i] == 0)
+            {
+                int j;
+
+                for (j = 0; j < m; j++)
+                {
+                    if (need[i][j] > work[j])
+                        break;
+                }
+
+                if (j == m)
+                {
+                    for (j = 0; j < m; j++)
+                        work[j] += allocation[i][j];
+
+                    safe[count++] = i;
+                    finish[i] = 1;
+                    found = 1;
+                }
+            }
+        }
+
+        if (found == 0)
+        {
+            printf("System is not in a safe state.\n");
+            return 0;
+        }
+    }
+
+    printf("System is in a safe state.\n");
+    printf("Safe Sequence: ");
+
+    for (int i = 0; i < n; i++)
+        printf("P%d ", safe[i]);
+
+    printf("\n");
+
+    return 0;
+}
+
+
+
+
+
+
+Code-wise Explanation – Banker's Algorithm (CO4)
+Below is the explanation of your program from start to end, with each code section explained in simple language.
+1. Header File
+#include <stdio.h>
+
+
+- Includes the standard input/output library.
+- Used for printf() and scanf() functions.
+2. Main Function and Variable Declaration
+int main()
+{
+    int n, m;
+    int allocation[10][10], max[10][10], need[10][10];
+    int available[10], work[10], finish[10];
+    int safe[10], count = 0;
+
+
+- n stores the number of processes.
+- m stores the number of resources.
+- allocation stores allocated resources.
+- max stores maximum resource requirements.
+- need stores remaining resource requirements.
+- available stores available resources.
+- work stores temporary available resources.
+- finish checks whether a process is completed.
+- safe stores the safe sequence.
+- count counts completed processes.
+3. Accept User Input
+printf("Enter number of processes: ");
+scanf("%d", &n);
+
+printf("Enter number of resources: ");
+scanf("%d", &m);
+
+
+- Accepts the number of processes and resources from the user.
+4. Accept Allocation Matrix
+printf("Enter Allocation Matrix:\n");
+for (int i = 0; i < n; i++)
+    for (int j = 0; j < m; j++)
+        scanf("%d", &allocation[i][j]);
+
+
+- Accepts the currently allocated resources for each process.
+- Nested loops are used to enter matrix values.
+5. Accept Max Matrix
+printf("Enter Max Matrix:\n");
+for (int i = 0; i < n; i++)
+    for (int j = 0; j < m; j++)
+        scanf("%d", &max[i][j]);
+
+
+- Accepts the maximum resource requirements of each process.
+6. Accept Available Resources
+printf("Enter Available Resources:\n");
+for (int j = 0; j < m; j++)
+    scanf("%d", &available[j]);
+
+
+- Accepts the currently available number of each resource type.
+7. Calculate Need Matrix
+for (int i = 0; i < n; i++)
+    for (int j = 0; j < m; j++)
+        need[i][j] = max[i][j] - allocation[i][j];
+
+
+- Calculates the remaining resources required by each process.
+
+Formula:
+\[
+Need = Max - Allocation
+\]
+
+8. Initialize Work and Finish
+for (int j = 0; j < m; j++)
+    work[j] = available[j];
+
+for (int i = 0; i < n; i++)
+    finish[i] = 0;
+
+
+- Copies available resources into the Work array.
+- Initializes all Finish values to 0.
+- 0 means the process is not completed.
+9. Find Safe Sequence
+while (count < n)
+{
+    int found = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        if (finish[i] == 0)
+        {
+            int j;
+
+            for (j = 0; j < m; j++)
+            {
+                if (need[i][j] > work[j])
+                    break;
+            }
+
+
+- The while loop continues until all processes are completed.
+- found = 0 indicates that no process has been completed in the current search.
+- The for loop checks each process.
+- finish[i] == 0 checks whether the process is unfinished.
+- The inner loop checks whether the required resources are available.
+- If Need is greater than Work, the process cannot execute.
+10. Execute Process and Release Resources
+if (j == m)
+{
+    for (j = 0; j < m; j++)
+        work[j] += allocation[i][j];
+
+    safe[count++] = i;
+    finish[i] = 1;
+    found = 1;
+}
+
+
+- If all resource requirements are satisfied, the process can execute.
+- Its allocated resources are released back to Work.
+- The process number is stored in the Safe array.
+- finish[i] = 1 marks the process as completed.
+- found = 1 indicates that a process has been completed.
+11. Check Unsafe State
+if (found == 0)
+{
+    printf("System is not in a safe state.\n");
+    return 0;
+}
+
+
+- If no unfinished process can execute, the system is not in a safe state.
+- Displays the message and terminates the program.
+12. Display Safe Sequence
+printf("System is in a safe state.\n");
+printf("Safe Sequence: ");
+
+for (int i = 0; i < n; i++)
+    printf("P%d ", safe[i]);
+
+printf("\n");
+
+
+- Displays that the system is in a safe state.
+- Prints the safe sequence of processes.
+13. End of Program
+return 0;
+}
+
+
+- return 0 indicates successful execution.
+- Closes the main function.

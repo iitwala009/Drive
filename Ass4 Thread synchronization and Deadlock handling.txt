@@ -1,0 +1,142 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define N 5
+
+sem_t forks[N];
+sem_t room;
+
+void *philosopher(void *arg)
+{
+    int id = *(int *)arg;
+
+    printf("Philosopher %d is thinking\n", id);
+    sleep(1);
+
+    sem_wait(&room);
+
+    sem_wait(&forks[id]);
+    printf("Philosopher %d picked left fork\n", id);
+
+    sem_wait(&forks[(id + 1) % N]);
+    printf("Philosopher %d picked right fork\n", id);
+
+    printf("Philosopher %d is eating\n", id);
+    sleep(1);
+
+    sem_post(&forks[id]);
+    sem_post(&forks[(id + 1) % N]);
+
+    sem_post(&room);
+
+    printf("Philosopher %d finished eating\n", id);
+
+    return NULL;
+}
+
+int main()
+{
+    pthread_t p[N];
+    int id[N];
+
+    for (int i = 0; i < N; i++)
+        sem_init(&forks[i], 0, 1);
+
+    sem_init(&room, 0, N - 1);
+
+    for (int i = 0; i < N; i++)
+    {
+        id[i] = i;
+        pthread_create(&p[i], NULL, philosopher, &id[i]);
+    }
+
+    for (int i = 0; i < N; i++)
+        pthread_join(p[i], NULL);
+
+    for (int i = 0; i < N; i++)
+        sem_destroy(&forks[i]);
+
+    sem_destroy(&room);
+
+    return 0;
+}
+
+
+
+
+Explanation of C Program – Dining Philosophers Problem (CO3, CO4)
+Aim: To implement a deadlock-free solution to the Dining Philosophers Problem using semaphores.
+Step-by-step Explanation
+1. Header Files: Includes stdio.h, pthread.h, semaphore.h and unistd.h for input/output, thread creation, semaphore operations and delay.
+
+2. Number of Philosophers: #define N 5 defines five philosophers and five forks.
+
+3. Semaphore Declaration: sem_t forks[N] creates five semaphores, one for each fork. Each fork is initially available.
+
+4. Room Semaphore: sem_t room allows a maximum of four philosophers to enter the dining area at the same time.
+
+5. Philosopher Function: Each philosopher first thinks for one second and then tries to enter the dining area.
+
+6. sem_wait(&room): Allows only four philosophers to compete for forks at a time, preventing deadlock.
+
+7. Picking Forks: sem_wait(&forks[id]) picks the left fork, and sem_wait(&forks[(id + 1) % N]) picks the right fork.
+
+8. Eating: After picking both forks, the philosopher starts eating and sleeps for one second.
+
+9. Releasing Forks: sem_post() releases both forks after eating so other philosophers can use them.
+
+10. Leaving the Room: sem_post(&room) releases the room semaphore, allowing another philosopher to enter.
+
+11. Thread Creation: pthread_create() creates five philosopher threads.
+
+12. Thread Joining: pthread_join() makes the main program wait until all philosophers finish eating.
+
+13. Cleanup: sem_destroy() destroys all fork semaphores and the room semaphore.
+
+Working of the Program
+
+
+Working steps:
+1. Five philosophers think.
+2. Maximum four philosophers can enter the room.
+3. Each philosopher picks two forks.
+4. The philosopher eats.
+5. Both forks are released.
+6. The philosopher leaves the room.
+
+Important Functions Used
+Function	             Purpose
+pthread_create()	  Creates philosopher threads.
+pthread_join()	      Waits for threads to finish.
+sem_init()	          Initializes semaphores.
+sem_wait()	           Decreases semaphore value or waits.
+sem_post()	          Releases semaphore.
+sem_destroy()	      Destroys semaphore.
+sleep()	            Adds a time delay.
+
+Important Concepts for Viva
+1. What is the Dining Philosophers Problem?
+
+It is a synchronization problem in which five philosophers share five forks, and each philosopher needs two forks to eat.
+
+2. What is Deadlock?
+
+Deadlock is a situation where processes wait indefinitely for resources held by each other.
+
+3. What is Deadlock Avoidance?
+
+Deadlock avoidance is a technique used to prevent the system from entering a deadlock state.
+
+4. What is a Semaphore?
+
+A semaphore is a synchronization variable used to control access to shared resources.
+
+5. Why is the room semaphore initialized to N-1?
+
+It allows only four philosophers to compete for five forks at a time, preventing circular waiting and avoiding deadlock.
+
+6. What is Starvation?
+
+Starvation occurs when a process waits indefinitely for the resources it needs.

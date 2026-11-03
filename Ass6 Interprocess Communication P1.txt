@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+#define FIFO1 "fifo1"
+#define FIFO2 "fifo2"
+
+int main() {
+    char buffer[1024];
+    int fd1, fd2;
+    ssize_t n;
+
+    mkfifo(FIFO1, 0666);
+    mkfifo(FIFO2, 0666);
+
+    printf("Enter sentences (type END to finish):\n");
+
+    fd1 = open(FIFO1, O_WRONLY);
+
+    while (fgets(buffer, sizeof(buffer), stdin)) {
+        if (strcmp(buffer, "END\n") == 0 ||
+            strcmp(buffer, "END") == 0)
+            break;
+
+        if (write(fd1, buffer, strlen(buffer)) == -1) {
+            perror("Write failed");
+            close(fd1);
+            return 1;
+        }
+    }
+
+    close(fd1);
+
+    fd2 = open(FIFO2, O_RDONLY);
+
+    printf("\nResult received from Process 2:\n\n");
+
+    while ((n = read(fd2, buffer, sizeof(buffer))) > 0) {
+        write(STDOUT_FILENO, buffer, n);
+    }
+
+    close(fd2);
+
+    unlink(FIFO1);
+    unlink(FIFO2);
+
+    return 0;
+}

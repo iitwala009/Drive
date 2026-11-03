@@ -1,0 +1,356 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+
+void sort(int a[], int n)
+{
+    int i, j, t;
+    for(i = 0; i < n-1; i++)
+        for(j = 0; j < n-i-1; j++)
+            if(a[j] > a[j+1]) {
+                t = a[j];
+                a[j] = a[j+1];
+                a[j+1] = t;
+            }
+}
+
+int main()
+{
+    int n, head, size, req[100], a[100];
+    int left[100], right[100], l=0, r=0;
+    int i, j, cur, total;
+
+    printf("Enter number of requests: ");
+    scanf("%d", &n);
+
+    if(n < 1 || n > 100) return 1;
+
+    printf("Enter requests: ");
+    for(i=0; i<n; i++) {
+        scanf("%d", &req[i]);
+        a[i] = req[i];
+    }
+
+    printf("Enter head position: ");
+    scanf("%d", &head);
+
+    printf("Enter total cylinders: ");
+    scanf("%d", &size);
+
+    if(size < 1 || head < 0 || head >= size) return 1;
+
+    for(i=0; i<n; i++)
+        if(req[i] < 0 || req[i] >= size) return 1;
+
+    sort(a,n);
+
+    for(i=0; i<n; i++) {
+        if(a[i] <= head)
+            left[l++] = a[i];
+        else
+            right[r++] = a[i];
+    }
+
+    // SSTF
+    int visited[100] = {0};
+    cur = head;
+    total = 0;
+
+    printf("\nSSTF: ");
+    for(i=0; i<n; i++) {
+        int min = 999999, pos = -1;
+
+        for(j=0; j<n; j++) {
+            if(!visited[j] && abs(req[j]-cur) < min) {
+                min = abs(req[j]-cur);
+                pos = j;
+            }
+        }
+
+        visited[pos] = 1;
+        total += min;
+        cur = req[pos];
+        printf("%d ", cur);
+    }
+    printf("\nTotal movement = %d\n", total);
+
+    // SCAN
+    cur = head;
+    total = 0;
+
+    printf("\nSCAN: ");
+    for(i=l-1; i>=0; i--) {
+        total += abs(cur-left[i]);
+        cur = left[i];
+        printf("%d ", cur);
+    }
+
+    total += cur;
+    cur = 0;
+
+    for(i=0; i<r; i++) {
+        total += abs(right[i]-cur);
+        cur = right[i];
+        printf("%d ", cur);
+    }
+    printf("\nTotal movement = %d\n", total);
+
+    // C-LOOK
+    cur = head;
+    total = 0;
+
+    printf("\nC-LOOK: ");
+    for(i=l-1; i>=0; i--) {
+        total += abs(cur-left[i]);
+        cur = left[i];
+        printf("%d ", cur);
+    }
+
+    if(r > 0) {
+        total += abs(cur-right[r-1]);
+        cur = right[r-1];
+        printf("%d ", cur);
+
+        for(i=r-2; i>=0; i--) {
+            total += abs(cur-right[i]);
+            cur = right[i];
+            printf("%d ", cur);
+        }
+    }
+
+    printf("\nTotal movement = %d\n", total);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+Code-wise Explanation – Disk Scheduling Algorithms (CO5)
+Aim: To implement SSTF, SCAN and C-LOOK disk scheduling algorithms and calculate the total head movement.
+1. Header Files
+#include <stdio.h>
+#include <stdlib.h>
+
+
+- stdio.h is used for input and output.
+- stdlib.h is used for the abs() function to calculate absolute distance.
+2. Sort Function
+void sort(int a[], int n)
+{
+    int i, j, t;
+    for(i=0; i<n-1; i++)
+        for(j=0; j<n-i-1; j++)
+            if(a[j] > a[j+1]) {
+                t = a[j];
+                a[j] = a[j+1];
+                a[j+1] = t;
+            }
+}
+
+
+- Sorts disk requests in ascending order.
+- Uses the Bubble Sort algorithm.
+- Helps SCAN and C-LOOK process requests in the correct order.
+3. Variable Declaration
+int n, head, size, req[100], a[100];
+int left[100], right[100], l=0, r=0;
+int i, j, cur, total;
+
+
+- n – Number of disk requests.
+- head – Initial head position.
+- size – Total number of cylinders.
+- req[] – Stores disk requests.
+- a[] – Stores sorted requests.
+- left[] – Stores requests smaller than or equal to head.
+- right[] – Stores requests greater than head.
+- cur – Current head position.
+- total – Total head movement.
+4. Accept User Input
+printf("Enter number of requests: ");
+scanf("%d", &n);
+
+if(n < 1 || n > 100) return 1;
+
+printf("Enter requests: ");
+for(i=0; i<n; i++) {
+    scanf("%d", &req[i]);
+    a[i] = req[i];
+}
+
+
+- Accepts the number of disk requests.
+- Accepts all disk request positions.
+- Copies requests into another array for sorting.
+- Checks that the number of requests is valid.
+5. Accept Head Position and Disk Size
+printf("Enter head position: ");
+scanf("%d", &head);
+
+printf("Enter total cylinders: ");
+scanf("%d", &size);
+
+
+- Accepts the initial disk head position.
+- Accepts the total number of cylinders.
+6. Validate and Sort Requests
+if(size < 1 || head < 0 || head >= size) return 1;
+
+for(i=0; i<n; i++)
+    if(req[i] < 0 || req[i] >= size) return 1;
+
+sort(a,n);
+
+
+- Checks whether the head position and requests are within the disk range.
+- Sorts the requests in ascending order.
+7. Divide Requests into Left and Right
+for(i=0; i<n; i++) {
+    if(a[i] <= head)
+        left[l++] = a[i];
+    else
+        right[r++] = a[i];
+}
+
+
+- Divides requests into two groups.
+- left[] stores requests at or below the initial head.
+- right[] stores requests above the initial head.
+
+8. SSTF – Shortest Seek Time First
+int visited[100] = {0};
+cur = head;
+total = 0;
+
+printf("\nSSTF: ");
+for(i=0; i<n; i++) {
+    int min = 999999, pos = -1;
+
+    for(j=0; j<n; j++) {
+        if(!visited[j] && abs(req[j]-cur) < min) {
+            min = abs(req[j]-cur);
+            pos = j;
+        }
+    }
+
+    visited[pos] = 1;
+    total += min;
+    cur = req[pos];
+    printf("%d ", cur);
+}
+printf("\nTotal movement = %d\n", total);
+
+
+- visited[] tracks completed requests.
+- Finds the nearest unvisited request from the current head position.
+- Services that request and updates the head position.
+- Adds the distance to total head movement.
+- Repeats until all requests are completed.
+Main concept: Services the nearest request first.
+9. SCAN Algorithm
+cur = head;
+total = 0;
+
+printf("\nSCAN: ");
+for(i=l-1; i>=0; i--) {
+    total += abs(cur-left[i]);
+    cur = left[i];
+    printf("%d ", cur);
+}
+
+total += cur;
+cur = 0;
+
+for(i=0; i<r; i++) {
+    total += abs(right[i]-cur);
+    cur = right[i];
+    printf("%d ", cur);
+}
+printf("\nTotal movement = %d\n", total);
+
+
+- Starts from the initial head position.
+- Moves towards cylinder 0 first.
+- Services all left-side requests in descending order.
+- Moves to cylinder 0, then reverses direction.
+- Services all right-side requests in ascending order.
+- Calculates total head movement.
+Main concept: Moves like an elevator, reaching the disk end before reversing direction.
+10. C-LOOK Algorithm
+cur = head;
+total = 0;
+
+printf("\nC-LOOK: ");
+for(i=l-1; i>=0; i--) {
+    total += abs(cur-left[i]);
+    cur = left[i];
+    printf("%d ", cur);
+}
+
+if(r > 0) {
+    total += abs(cur-right[r-1]);
+    cur = right[r-1];
+    printf("%d ", cur);
+
+    for(i=r-2; i>=0; i--) {
+        total += abs(cur-right[i]);
+        cur = right[i];
+        printf("%d ", cur);
+    }
+}
+printf("\nTotal movement = %d\n", total);
+
+
+- Starts from the initial head position.
+- Services left-side requests in descending order.
+- Jumps directly to the highest pending request on the right side.
+- Continues servicing right-side requests in descending order.
+- Calculates total head movement.
+Main concept: Services only the requested cylinders and jumps to the opposite end of the pending requests instead of going to the physical disk end.
+11. End of Program
+return 0;
+}
+
+
+- Terminates the program successfully.
+
+Important Difference Between Algorithms
+Algorithm	  Working
+SSTF	      Selects the nearest request.
+SCAN	      Goes to the disk end and reverses direction.
+C-LOOK	      Goes to the last pending request and jumps to the opposite pending request.
+
+Important Viva Questions
+1. What is Disk Scheduling?
+
+Disk Scheduling is the method of deciding the order in which disk requests are serviced.
+
+2. What is SSTF?
+
+Shortest Seek Time First selects the request closest to the current head position.
+
+3. What is SCAN?
+
+SCAN moves the disk head in one direction, services requests and reverses direction after reaching the disk end.
+
+4. What is C-LOOK?
+
+C-LOOK services requests in one direction and jumps to the last pending request at the opposite end.
+
+5. What is Head Movement?
+
+It is the distance travelled by the disk head between requested cylinders.
+
+6. Which algorithm selects the nearest request?
+
+SSTF.

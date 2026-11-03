@@ -1,0 +1,282 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+#define FIFO1 "fifo1"
+#define FIFO2 "fifo2"
+
+int main() {
+    char buffer[1024];
+    int fd1, fd2;
+    FILE *fp;
+    ssize_t n;
+
+    long characters = 0;
+    long words = 0;
+    long lines = 0;
+    int in_word = 0;
+
+    mkfifo(FIFO1, 0666);
+    mkfifo(FIFO2, 0666);
+
+    fd1 = open(FIFO1, O_RDONLY);
+
+    while ((n = read(fd1, buffer, sizeof(buffer))) > 0) {
+        for (ssize_t i = 0; i < n; i++) {
+            unsigned char ch = (unsigned char)buffer[i];
+
+            characters++;
+
+            if (ch == '\n')
+                lines++;
+
+            if (isspace(ch)) {
+                in_word = 0;
+            } else if (!in_word) {
+                words++;
+                in_word = 1;
+            }
+        }
+    }
+
+    close(fd1);
+
+    fp = fopen("output.txt", "w");
+
+    if (fp == NULL) {
+        perror("Unable to create output file");
+        return 1;
+    }
+
+    fprintf(fp, "Number of characters: %ld\n", characters);
+    fprintf(fp, "Number of words: %ld\n", words);
+    fprintf(fp, "Number of lines: %ld\n", lines);
+
+    fclose(fp);
+
+    fp = fopen("output.txt", "r");
+
+    if (fp == NULL) {
+        perror("Unable to open output file");
+        return 1;
+    }
+
+    fd2 = open(FIFO2, O_WRONLY);
+
+    while ((n = fread(buffer, 1, sizeof(buffer), fp)) > 0) {
+        if (write(fd2, buffer, n) == -1) {
+            perror("Write failed");
+            fclose(fp);
+            close(fd2);
+            return 1;
+        }
+    }
+
+    fclose(fp);
+    close(fd2);
+
+    printf("Analysis completed. Results saved in output.txt\n");
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+A. Process 1 – Sender and Receiver
+1. Header Files and FIFO Declaration
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+#define FIFO1 "fifo1"
+#define FIFO2 "fifo2"
+
+
+- Includes required libraries for input/output, string handling and FIFO operations.
+- FIFO1 and FIFO2 define two named pipes.
+2. Variable Declaration
+char buffer[1024];
+int fd1, fd2;
+ssize_t n;
+
+
+- buffer stores input sentences.
+- fd1 and fd2 store file descriptors.
+- n stores the number of bytes read.
+3. Create FIFO
+mkfifo(FIFO1, 0666);
+mkfifo(FIFO2, 0666);
+
+
+- Creates two named pipes for communication between processes.
+- 0666 specifies read and write permissions.
+4. Accept Sentences and Send Data
+fd1 = open(FIFO1, O_WRONLY);
+
+while (fgets(buffer, sizeof(buffer), stdin)) {
+    if (strcmp(buffer, "END\n") == 0 ||
+        strcmp(buffer, "END") == 0)
+        break;
+
+    write(fd1, buffer, strlen(buffer));
+}
+
+
+- Accepts sentences from the user.
+- Sends sentences through FIFO1.
+- Stops accepting input when the user enters END.
+5. Receive and Display Result
+close(fd1);
+
+fd2 = open(FIFO2, O_RDONLY);
+
+while ((n = read(fd2, buffer, sizeof(buffer))) > 0) {
+    write(STDOUT_FILENO, buffer, n);
+}
+
+
+- Closes the first FIFO after sending data.
+- Receives the result from FIFO2.
+- Displays the received output on the screen.
+6. Close and Remove FIFO
+close(fd2);
+
+unlink(FIFO1);
+unlink(FIFO2);
+
+
+- Closes the FIFO.
+- Removes both named pipe files.
+
+B. Process 2 – Receiver and Analyzer
+1. Header Files and Variables
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+
+- Includes libraries for file handling, string operations, character checking and FIFO communication.
+long characters = 0;
+long words = 0;
+long lines = 0;
+int in_word = 0;
+
+
+- Stores the total number of characters, words and lines.
+- in_word checks whether the current character belongs to a word.
+2. Create and Open FIFO
+mkfifo(FIFO1, 0666);
+mkfifo(FIFO2, 0666);
+
+fd1 = open(FIFO1, O_RDONLY);
+
+
+- Creates two named pipes.
+- Opens FIFO1 in read mode to receive sentences from Process 1.
+3. Read and Count Data
+while ((n = read(fd1, buffer, sizeof(buffer))) > 0) {
+    for (ssize_t i = 0; i < n; i++) {
+        unsigned char ch = (unsigned char)buffer[i];
+
+        characters++;
+
+        if (ch == '\n')
+            lines++;
+
+        if (isspace(ch))
+            in_word = 0;
+        else if (!in_word) {
+            words++;
+            in_word = 1;
+        }
+    }
+}
+
+
+- Reads sentences received through FIFO1.
+- Counts every character.
+- Counts lines using the newline character \n.
+- Counts words using whitespace detection.
+4. Create Output File
+fp = fopen("output.txt", "w");
+
+fprintf(fp, "Number of characters: %ld\n", characters);
+fprintf(fp, "Number of words: %ld\n", words);
+fprintf(fp, "Number of lines: %ld\n", lines);
+
+fclose(fp);
+
+
+- Creates output.txt.
+- Stores the total characters, words and lines.
+- Closes the file after writing.
+5. Read Output File
+fp = fopen("output.txt", "r");
+
+fd2 = open(FIFO2, O_WRONLY);
+
+while ((n = fread(buffer, 1, sizeof(buffer), fp)) > 0) {
+    write(fd2, buffer, n);
+}
+
+
+- Opens the output file in read mode.
+- Reads the result from the file.
+- Sends the result through FIFO2 to Process 1.
+6. Close Files
+fclose(fp);
+close(fd2);
+
+
+- Closes the output file and second FIFO after communication.
+
+Important Functions for Viva
+Function	Purpose
+mkfifo()	Creates a named pipe.
+open()	   Opens a FIFO or file.
+read()	   Reads data from FIFO.
+write()  	Writes data into FIFO.
+fgets()	  Accepts a sentence.
+fopen()	  Opens a file.
+fprintf()	Writes data into a file.
+fclose()	Closes a file.
+unlink()	Removes a FIFO file.
+
+Important Viva Questions
+1. What is FIFO?
+
+FIFO stands for First In First Out. It is a named pipe used for communication between independent processes.
+
+2. What is IPC?
+
+IPC stands for Interprocess Communication. It allows two or more processes to exchange data.
+
+3. Why are two FIFOs used?
+
+One FIFO sends sentences from Process 1 to Process 2, and the second FIFO sends results back to Process 1.
+
+4. What is Full Duplex Communication?
+
+It allows two processes to send and receive data in both directions.
+
+5. What is the purpose of END?
+
+It indicates that the user has finished entering sentences.

@@ -1,0 +1,136 @@
+
+#!/bin/bash
+
+file="addressbook.txt"
+
+while true
+do
+    echo ""
+    echo "----- STUDENT ADDRESS BOOK -----"
+    echo "1. Create Address Book"
+    echo "2. View Address Book"
+    echo "3. Insert a Record"
+    echo "4. Delete a Record"
+    echo "5. Modify a Record"
+    echo "6. Exit"
+
+    read -p "Enter your choice: " ch
+
+    case $ch in
+
+    1)
+        > "$file"
+        echo "Address Book Created Successfully!"
+        ;;
+
+    2)
+        if [ -f "$file" ]; then
+            cat "$file"
+        else
+            echo "Address Book does not exist!"
+        fi
+        ;;
+
+    3)
+        read -p "Enter Name: " name
+        read -p "Enter Roll No: " roll
+        read -p "Enter Class Name: " class
+        read -p "Enter College Name: " college
+        read -p "Enter City: " city
+        read -p "Enter Marks: " marks
+
+        echo "$name | $roll | $class | $college | $city | $marks" >> "$file"
+        echo "Record Inserted Successfully!"
+        ;;
+
+    4)
+        read -p "Enter Roll No to Delete: " roll
+
+        grep -v " | $roll | " "$file" > temp.txt
+        mv temp.txt "$file"
+
+        echo "Record Deleted Successfully!"
+        ;;
+
+    5)
+        read -p "Enter Roll No to Modify: " roll
+
+        if grep -q " | $roll | " "$file"; then
+            grep -v " | $roll | " "$file" > temp.txt
+            mv temp.txt "$file"
+
+            echo "Enter New Details:"
+            read -p "Enter Name: " name
+            read -p "Enter Roll No: " r
+            read -p "Enter Class Name: " class
+            read -p "Enter College Name: " college
+            read -p "Enter City: " city
+            read -p "Enter Marks: " marks
+
+            echo "$name | $r | $class | $college | $city | $marks" >> "$file"
+            echo "Record Modified Successfully!"
+        else
+            echo "Record Not Found!"
+        fi
+        ;;
+
+    6)
+        echo "Exiting Address Book..."
+        exit
+        ;;
+
+    *)
+        echo "Invalid Choice!"
+        ;;
+
+    esac
+done
+
+
+
+Explanation of Shell Program – Student Address Book
+1. #!/bin/bash – Specifies that the program runs using the Bash shell.
+
+2. file="addressbook.txt" – Creates a file variable to store student records.
+
+3. while true – Runs the menu continuously until the user selects Exit.
+
+4. echo – Displays the menu options (Create, View, Insert, Delete, Modify and Exit).
+
+5. read – Accepts input from the user, such as name, roll number, class, college, city and marks.
+
+6. case $ch in – Executes the operation according to the user's choice.
+
+7. Create (Option 1) – > "$file" creates an empty address book file.
+
+8. View (Option 2) – cat "$file" displays all student records stored in the file.
+
+9. Insert (Option 3) – Accepts student details and >> "$file" adds the new record to the file.
+
+10. Delete (Option 4) – Uses grep -v to remove the record matching the entered roll number.
+
+11. Modify (Option 5) – Searches for the roll number, removes the old record and inserts the updated details.
+
+12. Exit (Option 6) – exit terminates the program.
+
+13. *) – Displays an error message if the user enters an invalid choice.
+
+14. done – Marks the end of the while loop.
+
+Important Commands Used
+Command	Purpose
+echo	Display message
+read	Accept user input
+while	Repeat statements
+case	Select an operation
+cat  	Display file contents
+grep -v	Exclude matching records
+>	    Create/overwrite file
+>>	    Append data to file
+mv	    Move or replace file
+exit    Terminate program
+
+
+
+
+
