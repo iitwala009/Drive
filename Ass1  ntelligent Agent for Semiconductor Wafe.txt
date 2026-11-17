@@ -1,0 +1,38 @@
+# Intelligent Agent for Semiconductor Wafer Processing Temperature Control
+
+while True:
+    # Wafer processing temperature range (100°C - 400°C)
+    temp = float(input("\nEnter current wafer processing temperature (100-400): "))
+
+    while temp < 100 or temp > 400:
+        print("Invalid temperature! Enter a value between 100 and 400.")
+        temp = float(input("Enter current wafer temperature: "))
+
+    if temp < 250:
+        print("Heater : ON")
+        print("Cooling Fan : OFF")
+        print("Alarm : OFF")
+        print("Status : Temperature too low for doping process.")
+
+    elif temp > 350:
+        print("Heater : OFF")
+        print("Cooling Fan : ON")
+        print("Alarm : ON")
+        print("Status : DANGER! Wafer overheating. Possible damage to circuits.")
+
+    elif temp > 310:
+        print("Heater : OFF")
+        print("Cooling Fan : ON")
+        print("Alarm : OFF")
+        print("Status : Temperature above target. Cooling wafer.")
+
+    else:
+        print("Heater : OFF")
+        print("Cooling Fan : OFF")
+        print("Alarm : OFF")
+        print("Status : Temperature optimal. Processing continues.")
+
+    choice = input("\nCheck temperature again? (yes/no): ").lower()
+    if choice != "yes":
+        print("Wafer processing monitoring stopped.")
+        break

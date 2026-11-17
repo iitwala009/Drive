@@ -1,0 +1,84 @@
+#Smart Home Climate & Energy Control agent
+
+def climcontrol():
+    temp=int(input("Enter the temperature:"))
+    while (temp<-40 or temp>60):
+        print("Invalid value.")
+        temp=int(input("Enter the temperature:"))
+    if (temp<=20 and temp>=-40):
+        print("Heater switched ON. Fans and AC switched OFF.")
+        if (temp<=10):
+            print("Heater power INCREASED.")
+    elif (temp>=30 and temp<40):
+        print("Fans switched ON. Windows OPENED for better ventilation.")
+        if (temp>=35):
+            print("Fan power INCREASED to 4.")
+    elif (temp>=40 and temp<60):
+        print("AC switched ON. Fans OFF and windows CLOSED.")
+    else:
+        print("Invalid value.")
+
+    hum=int(input("Enter the humidity(%):"))
+    while (hum<0 or hum>100):
+        print("Invalid value.")
+        hum=int(input("Enter the humidity(%):"))
+    if(hum<50):
+        print("Humidifier switched ON.")
+    else:
+        print("Humidifier switched OFF.")
+
+
+def enecontrol():
+    tim=int(input("Enter amount of time device has been in ON state: "))
+    while (tim<0 or tim>150):
+        print("Invalid value.")
+        tim=int(input("Enter amount of time device has been in ON state: "))
+    if (tim>30):
+        ans=input("ALERT! Device has been on for more than 30 minutes. Keep device on? (Y/N) ")
+        while (ans!='Y' and ans!='N' and ans!='y' and ans!='n'):
+            print("Invalid value.")
+            ans=input("Keep device on? (Y/N) ")
+        if (ans=='N' or ans=='n'):
+            print("Device switched OFF.")
+        else:
+            print("Device kept ON.");
+    else:
+        pass;
+
+    person=input("Is there anybody in the room? (Y/N): ")
+    while (person!='Y' and person!='N' and person!='y' and person!='n'):
+        print("Invalid value.")
+        person=input("Is there anybody in the room? (Y/N): ")
+    if (person=='Y' or person=='y'):
+        print("Device kept ON.")
+    else:
+        print("Device switched OFF.")
+
+
+def weather():
+    rain=input("Is it raining? (Y/N)")
+    while (rain!='Y' and rain!='N'and rain!='y' and rain!='n'):
+        print("Invalid value.")
+        rain=input("Is it raining? (Y/N)")
+    if (rain=='Y' or rain=='y'):
+        print("Windows CLOSED.")
+    else:
+        pass;
+
+
+print("Smart Home Climate & Energy Control -")
+
+while True:
+    print("Operations: 1. Climate Control 2. Energy Control 3. Window Control 4. Exit")
+    op=int(input("Enter the operation number: "))
+    if (op==1):
+        climcontrol()
+    elif (op==2):
+        enecontrol()
+    elif (op==3):
+        weather()
+    elif (op==4):
+        print("Shutting down...")
+        break;
+    else:
+        print("Invalid value.")
